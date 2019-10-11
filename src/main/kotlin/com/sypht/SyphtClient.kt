@@ -42,7 +42,7 @@ open class SyphtClient() {
      * @param file the file in pdf, jpeg, gif or png format. Files may be up to
      *             20MB in size and pdf files may contain up to 16 individual pages.
      * @param fieldSetOptions pass in custom upload options here.
-     * @param requestTimeout pass in custom http request timeout default is 30seconds.
+     * @param requestTimeout pass in custom http request timeout in seconds, default is 30seconds.
      * @return a fileId as a String.
      * @throws IOException in the event the upload went wrong.
      * @throws IllegalStateException when http response code is outside 200...299 or the response body is null.
@@ -63,7 +63,7 @@ open class SyphtClient() {
      * @param inputStream binary input stream of pdf, jpeg, gif or png format. Files may be up to
      *                    20MB in size and pdf files may contain up to 16 individual pages.
      * @param fieldSetOptions pass in custom upload options here.
-     * @param requestTimeout pass in custom http request timeout default is 30seconds.
+     * @param requestTimeout pass in custom http request timeout in seconds, default is 30seconds.
      * @return a fileId as a String.
      * @throws IOException in the event the upload went wrong.
      * @throws IllegalStateException when http response code is outside 200...299 or the response body is null.
