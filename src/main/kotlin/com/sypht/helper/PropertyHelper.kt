@@ -1,7 +1,7 @@
 /*
  * PropertyHelper
  */
-package com.sypht
+package com.sypht.helper
 
 /**
  * @author Gbolahan Kuti

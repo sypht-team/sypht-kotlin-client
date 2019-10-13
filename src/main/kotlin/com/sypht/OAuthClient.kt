@@ -1,5 +1,7 @@
 package com.sypht
 
+import com.sypht.helper.Constants
+import com.sypht.helper.PropertyHelper
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -12,10 +14,10 @@ import java.util.logging.Logger
  * Log-in to the Sypht API
  */
 class OAuthClient {
-    protected var clientId: String? = null
-    protected var clientSecret: String? = null
-    protected var oauthAudience: String? = null
-    protected var log = Logger.getLogger("com.sypht.OAuthClient")
+    private var clientId: String? = null
+    private var clientSecret: String? = null
+    private var oauthAudience: String? = null
+    private var log = Logger.getLogger("com.sypht.OAuthClient")
 
     /**
      * Create a default OAuthClient. Requires OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET
@@ -43,7 +45,7 @@ class OAuthClient {
     /**
      * Get a JWT bearer token for use with the Sypht API in exchange for your
      * client id and secret.
-
+     *
      * @return a bearer token as a String
      * @throws IOException when api execution fails
      * @throws IllegalStateException when http response code is outside 200...299 or the response body is null;
