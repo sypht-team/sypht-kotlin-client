@@ -1,37 +1,54 @@
-## Welcome to GitHub Pages
+# Sypht Kotlin Client
+This repository is a Kotlin reference client implementation for working with the Sypht API. [![Docs](https://img.shields.io/badge/API%20Docs-site-lightgrey.svg?style=flat-square)](https://docs.sypht.com)
 
-You can use the [editor on GitHub](https://github.com/sypht-team/sypht-kotlin-client/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+## About Sypht
+[Sypht](https://sypht.com) is a SaaS [API]((https://docs.sypht.com/)) which extracts key fields from documents. For
+example, you can upload an image or pdf of a bill or invoice and extract the amount due, due date, invoice number
+and biller information.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+## Getting started
+To get started you'll need API credentials, i.e. a `<client_id>` and `<client_secret>`, which can be obtained by registering
+for an [account](https://www.sypht.com/signup/developer)
 
-### Markdown
+## Prerequisites
+JDK8 and upwards are supported.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+## Installation
+Sypht Java Client is available on maven central:
 
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```Xml
+<dependency>
+  <groupId>com.sypht</groupId>
+  <artifactId>sypht-java-client</artifactId>
+  <version>1.3</version>
+</dependency>
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+## Usage
+Populate these system environment variables with the credentials generated above:
 
-### Jekyll Themes
+```Bash
+SYPHT_API_KEY="<client_id>:<client_secret>"
+```
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/sypht-team/sypht-kotlin-client/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+or
 
-### Support or Contact
+```Bash
+OAUTH_CLIENT_ID="<client_id>"
+OAUTH_CLIENT_SECRET="<client_secret>"
+```
 
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+then invoke the client with a file of your choice:
+```Kotlin
+val client = SyphtClient()
+        println(
+                client.result(
+                        client.upload(
+                                File("receipt.pdf"))))
+```
+
+## License
+The software in this repository is available as open source under the terms of the [Apache License](https://github.com/sypht-team/sypht-kotlin-client/blob/master/LICENSE).
+
+## Code of Conduct
+Everyone interacting in the project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/sypht-team/sypht-kotlin-client/blob/master/CODE_OF_CONDUCT.md).
