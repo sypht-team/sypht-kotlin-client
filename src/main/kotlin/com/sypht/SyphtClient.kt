@@ -1,8 +1,11 @@
 package com.sypht
 
+import com.sypht.helper.Constants
+import com.sypht.helper.InputStreamRequestBody
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import okhttp3.*
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.io.IOException
@@ -16,11 +19,11 @@ import java.util.logging.Logger
  */
 open class SyphtClient() {
     private var bearerToken: String? = null
+    private var okHttpClient: OkHttpClient? = null
     private var oauthClient: OAuthClient
-    private val OAUTH_GRACE_PERIOD = 1000 * 60 * 10
+    private var OAUTH_GRACE_PERIOD = 1000 * 60 * 10
     private val REQUEST_TIMEOUT: Long = 30
-    protected var log = Logger.getLogger("com.sypht.OAuthClient")
-
+    private val log = Logger.getLogger("com.sypht.OAuthClient")
 
     /**
      * Create a default Sypht client that manages bearer tokens automatically.
@@ -31,6 +34,7 @@ open class SyphtClient() {
 
     /**
      * Create a custom Sypht client with your own bearer token.
+     *
      * @param bearerToken the Jwt token
      */
     constructor(bearerToken: String) : this() {
@@ -39,6 +43,7 @@ open class SyphtClient() {
 
     /**
      * Pass a file to Sypht for detection.
+     *
      * @param file the file in pdf, jpeg, gif or png format. Files may be up to
      *             20MB in size and pdf files may contain up to 16 individual pages.
      * @param fieldSetOptions pass in custom upload options here.
@@ -48,17 +53,17 @@ open class SyphtClient() {
      * @throws IllegalStateException when http response code is outside 200...299 or the response body is null.
      */
     @Throws(IOException::class, IllegalStateException::class)
-    fun upload(file: File, fieldSetOptions: Map<String, String>? = null, requestTimeout: Long = REQUEST_TIMEOUT): String {
+    fun upload(file: File, fieldSetOptions: Array<String>? = null, requestTimeout: Long = REQUEST_TIMEOUT): String {
         val builder = buildMultipartBodyUploadWithFile(file)
         fieldSetOptions?.let {
-            addFieldSets(it, builder)
+            builder.addFormDataPart("fieldSets", JSONArray(fieldSetOptions).toString())
         }
         return performUpload(builder, if (requestTimeout < 30) REQUEST_TIMEOUT else requestTimeout)
     }
 
     /**
      * Pass a file to Sypht for detection.
-
+     *
      * @param fileName the file name
      * @param inputStream binary input stream of pdf, jpeg, gif or png format. Files may be up to
      *                    20MB in size and pdf files may contain up to 16 individual pages.
@@ -69,16 +74,16 @@ open class SyphtClient() {
      * @throws IllegalStateException when http response code is outside 200...299 or the response body is null.
      */
     @Throws(IOException::class, IllegalStateException::class)
-    fun upload(fileName: String, inputStream: InputStream, fieldSetOptions: Map<String, String>? = null,
+    fun upload(fileName: String, inputStream: InputStream, fieldSetOptions: Array<String>? = null,
                requestTimeout: Long = REQUEST_TIMEOUT): String {
-        val builder = buildMultipartBodyUploadWithInputStream(fileName,inputStream)
+        val builder = buildMultipartBodyUploadWithInputStream(fileName, inputStream)
         fieldSetOptions?.let {
-            addFieldSets(it, builder)
+            builder.addFormDataPart("fieldSets", JSONArray(fieldSetOptions).toString())
         }
         return performUpload(builder, if (requestTimeout < 30) REQUEST_TIMEOUT else requestTimeout)
     }
 
-    protected fun buildMultipartBodyUploadWithFile(file: File): MultipartBody.Builder {
+    private fun buildMultipartBodyUploadWithFile(file: File): MultipartBody.Builder {
         val formBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("fileToUpload", file.name,
@@ -86,7 +91,7 @@ open class SyphtClient() {
         return formBody
     }
 
-    protected fun buildMultipartBodyUploadWithInputStream(fileName: String, inputStream: InputStream): MultipartBody.Builder {
+    private fun buildMultipartBodyUploadWithInputStream(fileName: String, inputStream: InputStream): MultipartBody.Builder {
         val formBody = MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("fileToUpload", fileName,
@@ -95,15 +100,10 @@ open class SyphtClient() {
     }
 
     @Throws(IOException::class, IllegalStateException::class)
-    protected fun performUpload(builder: MultipartBody.Builder, timeout: Long): String {
-        val client = OkHttpClient().newBuilder()
-                .connectTimeout(timeout, TimeUnit.SECONDS)
-                .readTimeout(timeout, TimeUnit.SECONDS)
-                .writeTimeout(timeout, TimeUnit.SECONDS)
-                .build()
-
+    private fun performUpload(builder: MultipartBody.Builder, timeout: Long): String {
+        val client = getOkHttpClient(timeout)
         val formBody = builder.build()
-        val request = createAuthorizedHttpRequest(Constants.SYPHT_API_ENDPOINT + "/fileupload")
+        val request = createAuthorizedHttpRequest("${Constants.SYPHT_API_ENDPOINT}/fileupload")
                 .post(formBody)
                 .build();
 
@@ -117,10 +117,26 @@ open class SyphtClient() {
         return fileId
     }
 
-    protected fun addFieldSets(fieldSetOptions: Map<String, String>, multipartBody: MultipartBody.Builder) {
-        fieldSetOptions.forEach {
-            multipartBody.addFormDataPart(it.key, it.value)
+    /**
+     * Fetch prediction results from Sypht.
+     *
+     * @param fileId the fileId.
+     * @return prediction results in JSON format.
+     * @throws IOException when api execution fails
+     * @throws IllegalStateException when http response code is outside 200...299 or the response body is null.
+     */
+    @Throws(IOException::class, IllegalStateException::class)
+    fun result(fileId: String): String {
+        val client = getOkHttpClient(REQUEST_TIMEOUT)
+        val request = createAuthorizedHttpRequest("${Constants.SYPHT_API_ENDPOINT}/result/final/$fileId")
+                .get()
+                .build()
+        val response = client.newCall(request).execute();
+        if (!response.isSuccessful || response.body() == null) {
+            throw IllegalStateException("sypht upload failed")
         }
+        log.info("sypht results successfully fetched for fileId " + fileId)
+        return response.body()!!.string()
     }
 
     private fun createAuthorizedHttpRequest(url: String): Request.Builder {
@@ -129,7 +145,7 @@ open class SyphtClient() {
                 .addHeader("Authorization", "Bearer " + getBearerToken())
     }
 
-    protected @Synchronized fun getBearerToken(): String {
+    private @Synchronized fun getBearerToken(): String {
         bearerToken?.let {
             val cacheExpiry = cacheExpiry(decodeTokenClaims(it))
             if (cacheExpiry > Date().time) {
@@ -145,14 +161,25 @@ open class SyphtClient() {
         return bearerToken!!
     }
 
-    protected fun cacheExpiry(claims: Claims): Long {
+    private fun getOkHttpClient(timeout: Long): OkHttpClient {
+        okHttpClient?.let {
+            return it
+        }
+        val client = OkHttpClient().newBuilder()
+                .connectTimeout(timeout, TimeUnit.SECONDS)
+                .readTimeout(timeout, TimeUnit.SECONDS)
+                .writeTimeout(timeout, TimeUnit.SECONDS)
+                .build()
+        return client
+    }
+
+    private fun cacheExpiry(claims: Claims): Long {
         return claims.expiration.time - OAUTH_GRACE_PERIOD
     }
 
-    protected fun decodeTokenClaims(token: String): Claims {
-        val splitToken = token.split("\\.")
+    private fun decodeTokenClaims(token: String): Claims {
+        val splitToken = token.split("\\.".toRegex())
         val unsignedToken = splitToken[0] + "." + splitToken[1] + "."
-
         val jwt = Jwts.parser().parse(unsignedToken)
         val claims = jwt.body as Claims
         return claims
