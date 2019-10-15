@@ -11,7 +11,8 @@ To get started you'll need API credentials, i.e. a `<client_id>` and `<client_se
 for an [account](https://www.sypht.com/signup/developer)
 
 ## Prerequisites
-JDK8 and upwards are supported.
+- Install Java 8 JDK or upward
+- Install [Kotlin](https://kotlinlang.org)
 
 ## Installation
 Sypht Kotlin Client is available on maven central:
