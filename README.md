@@ -12,7 +12,16 @@ for an [account](https://www.sypht.com/signup/developer)
 
 ## Prerequisites
 - Install Java 8 JDK or upward
+
+```Bash
+brew tap AdoptOpenJDK/openjdk
+brew cask install adoptopenjdk8
+```
 - Install [Kotlin](https://kotlinlang.org)
+
+```Bash
+brew install kotlin
+```
 
 ## Installation
 Sypht Kotlin Client is available on maven central:
