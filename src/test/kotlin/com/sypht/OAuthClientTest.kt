@@ -23,7 +23,6 @@ class OAuthClientTest {
         val client = OAuthClient()
         val token = client.login()
         TestCase.assertTrue("doesn't look like a JWT Token", token.startsWith("eyJ0"))
-
     }
 
     /**
