@@ -63,6 +63,17 @@ val client = SyphtClient()
                         client.upload(
                                 File("receipt.pdf"))))
 ```
+## Testing
+Open pom.xml and add the below line inside `<environmentVariables> </environmentVariables>` with the credentials generated above:
+```xml
+<OAUTH_CLIENT_ID>client_id</OAUTH_CLIENT_ID>
+<OAUTH_CLIENT_SECRET>client_secret</OAUTH_CLIENT_SECRET>
+<SYPHT_API_KEY>client_id:client_secret</SYPHT_API_KEY>
+```
+then run 
+```Bash
+mvn test
+```
 
 ## License
 The software in this repository is available as open source under the terms of the [Apache License](https://github.com/sypht-team/sypht-kotlin-client/blob/master/LICENSE).
