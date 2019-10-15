@@ -14,7 +14,7 @@ for an [account](https://www.sypht.com/signup/developer)
 JDK8 and upwards are supported.
 
 ## Installation
-Sypht Java Client is available on maven central:
+Sypht Kotlin Client is available on maven central:
 
 ```Xml
 <dependency>
