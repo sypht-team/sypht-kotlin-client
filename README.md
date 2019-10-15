@@ -24,7 +24,7 @@ brew install kotlin
 ```
 
 ## Installation
-Sypht Kotlin Client is available on maven central:
+Sypht Kotlin Client is available on maven central, add this to your pom.xml:
 
 ```Xml
 <dependency>
