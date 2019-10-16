@@ -2,6 +2,7 @@ package com.sypht
 
 import com.sypht.helper.Constants
 import com.sypht.helper.InputStreamRequestBody
+import com.sypht.helper.PropertyHelper
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import okhttp3.*
@@ -22,14 +23,15 @@ open class SyphtClient() {
     private var okHttpClient: OkHttpClient? = null
     private var oauthClient: OAuthClient
     private var OAUTH_GRACE_PERIOD = 1000 * 60 * 10
-    private val REQUEST_TIMEOUT: Long = 30
+    private var requestTimeout: Long = 30
     private val log = Logger.getLogger("com.sypht.OAuthClient")
 
     /**
      * Create a default Sypht client that manages bearer tokens automatically.
      */
     init {
-        oauthClient = OAuthClient()
+        configureRequestTimeout()
+        oauthClient = OAuthClient(requestTimeout)
     }
 
     /**
@@ -53,12 +55,12 @@ open class SyphtClient() {
      * @throws IllegalStateException when http response code is outside 200...299 or the response body is null.
      */
     @Throws(IOException::class, IllegalStateException::class)
-    fun upload(file: File, fieldSetOptions: Array<String>? = null, requestTimeout: Long = REQUEST_TIMEOUT): String {
+    fun upload(file: File, fieldSetOptions: Array<String>? = null): String {
         val builder = buildMultipartBodyUploadWithFile(file)
         fieldSetOptions?.let {
             builder.addFormDataPart("fieldSets", JSONArray(fieldSetOptions).toString())
         }
-        return performUpload(builder, if (requestTimeout < 30) REQUEST_TIMEOUT else requestTimeout)
+        return performUpload(builder)
     }
 
     /**
@@ -74,13 +76,12 @@ open class SyphtClient() {
      * @throws IllegalStateException when http response code is outside 200...299 or the response body is null.
      */
     @Throws(IOException::class, IllegalStateException::class)
-    fun upload(fileName: String, inputStream: InputStream, fieldSetOptions: Array<String>? = null,
-               requestTimeout: Long = REQUEST_TIMEOUT): String {
+    fun upload(fileName: String, inputStream: InputStream, fieldSetOptions: Array<String>? = null): String {
         val builder = buildMultipartBodyUploadWithInputStream(fileName, inputStream)
         fieldSetOptions?.let {
             builder.addFormDataPart("fieldSets", JSONArray(fieldSetOptions).toString())
         }
-        return performUpload(builder, if (requestTimeout < 30) REQUEST_TIMEOUT else requestTimeout)
+        return performUpload(builder)
     }
 
     private fun buildMultipartBodyUploadWithFile(file: File): MultipartBody.Builder {
@@ -100,8 +101,8 @@ open class SyphtClient() {
     }
 
     @Throws(IOException::class, IllegalStateException::class)
-    private fun performUpload(builder: MultipartBody.Builder, timeout: Long): String {
-        val client = getOkHttpClient(timeout)
+    private fun performUpload(builder: MultipartBody.Builder): String {
+        val client = getOkHttpClient()
         val formBody = builder.build()
         val request = createAuthorizedHttpRequest("${Constants.SYPHT_API_ENDPOINT}/fileupload")
                 .post(formBody)
@@ -127,7 +128,7 @@ open class SyphtClient() {
      */
     @Throws(IOException::class, IllegalStateException::class)
     fun result(fileId: String): String {
-        val client = getOkHttpClient(REQUEST_TIMEOUT)
+        val client = getOkHttpClient()
         val request = createAuthorizedHttpRequest("${Constants.SYPHT_API_ENDPOINT}/result/final/$fileId")
                 .get()
                 .build()
@@ -161,14 +162,14 @@ open class SyphtClient() {
         return bearerToken!!
     }
 
-    private fun getOkHttpClient(timeout: Long): OkHttpClient {
+    private fun getOkHttpClient(): OkHttpClient {
         okHttpClient?.let {
             return it
         }
         val client = OkHttpClient().newBuilder()
-                .connectTimeout(timeout, TimeUnit.SECONDS)
-                .readTimeout(timeout, TimeUnit.SECONDS)
-                .writeTimeout(timeout, TimeUnit.SECONDS)
+                .connectTimeout(requestTimeout, TimeUnit.SECONDS)
+                .readTimeout(requestTimeout, TimeUnit.SECONDS)
+                .writeTimeout(requestTimeout, TimeUnit.SECONDS)
                 .build()
         return client
     }
@@ -183,5 +184,12 @@ open class SyphtClient() {
         val jwt = Jwts.parser().parse(unsignedToken)
         val claims = jwt.body as Claims
         return claims
+    }
+
+    private fun configureRequestTimeout() {
+        val requestTimeout = PropertyHelper.getEnvOrPropertyValueAsLong("REQUEST_TIMEOUT")
+        if (requestTimeout > 30) {
+            this.requestTimeout = requestTimeout
+        }
     }
 }

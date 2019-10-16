@@ -8,12 +8,13 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import org.json.JSONObject
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
 /**
  * Log-in to the Sypht API
  */
-class OAuthClient {
+class OAuthClient(val requestTimeout: Long = 30) {
     private var clientId: String? = null
     private var clientSecret: String? = null
     private var oauthAudience: String? = null
@@ -46,13 +47,17 @@ class OAuthClient {
      * Get a JWT bearer token for use with the Sypht API in exchange for your
      * client id and secret.
      *
-     * @return a bearer token as a String
-     * @throws IOException when api execution fails
-     * @throws IllegalStateException when http response code is outside 200...299 or the response body is null;
+     * @return a bearer token as a String.
+     * @throws IOException when api execution fails.
+     * @throws IllegalStateException when http response code is outside 200...299 or the response body is null.
      */
     @Throws(IOException::class, IllegalStateException::class)
     fun login(): String {
-        val client = OkHttpClient();
+        val client = OkHttpClient().newBuilder()
+                .connectTimeout(requestTimeout, TimeUnit.SECONDS)
+                .readTimeout(requestTimeout, TimeUnit.SECONDS)
+                .writeTimeout(requestTimeout, TimeUnit.SECONDS)
+                .build()
         val json = "{\"client_id\":\"$clientId\",\"client_secret\":\"$clientSecret\",\"audience\":\"$oauthAudience\",\"grant_type\":\"client_credentials\"}"
         val requestBody = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), json)
         val request = Request.Builder()
