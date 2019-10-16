@@ -54,6 +54,10 @@ or
 OAUTH_CLIENT_ID="<client_id>"
 OAUTH_CLIENT_SECRET="<client_secret>"
 ```
+You can also set the Http Request Timeout using the optional property:
+```Bash
+REQUEST_TIMEOUT="<value_in_seconds>"
+```
 
 then invoke the client with a file of your choice:
 ```Kotlin
