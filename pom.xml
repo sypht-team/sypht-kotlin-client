@@ -125,4 +125,34 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
+
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Gbolahan Kuti</name>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:https://github.com/sypht-team/sypht-kotlin-client.git</connection>
+        <developerConnection>scm:https://github.com/sypht-team/sypht-kotlin-client.git</developerConnection>
+        <url>https://github.com/sypht-team/sypht-kotlin-client.git</url>
+    </scm>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 </project>
