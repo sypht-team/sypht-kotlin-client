@@ -1,7 +1,7 @@
 package com.sypht
 
 import com.sypht.helper.Constants
-import com.sypht.helper.PropertyHelper
+import com.sypht.auth.ICredentialProvider
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -14,7 +14,8 @@ import java.util.logging.Logger
 /**
  * Log-in to the Sypht API
  */
-class OAuthClient(val requestTimeout: Long = 30) {
+class OAuthClient(val requestTimeout: Long = 30, val credentialProvider: ICredentialProvider) {
+
     private var clientId: String? = null
     private var clientSecret: String? = null
     private var oauthAudience: String? = null
@@ -25,22 +26,12 @@ class OAuthClient(val requestTimeout: Long = 30) {
      * set as environment variables.
      */
     init {
-        clientId = PropertyHelper.getEnvOrProperty("OAUTH_CLIENT_ID")
-        clientSecret = PropertyHelper.getEnvOrProperty("OAUTH_CLIENT_SECRET")
-        if (clientId == null && clientSecret == null) {
-            val syphtApiKey = PropertyHelper.getEnvOrProperty("SYPHT_API_KEY")
-            if (syphtApiKey != null) {
-                clientId = syphtApiKey.split(":")[0]
-                clientSecret = syphtApiKey.split(":")[1]
-            }
-        }
+        clientId = credentialProvider.clientId
+        clientSecret = credentialProvider.clientSecret
         if (clientId == null || clientSecret == null) {
             throw RuntimeException("SYPHT_API_KEY -OR- OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET environment" + " variables must be set before running this process, exiting")
         }
-        oauthAudience = PropertyHelper.getEnvOrProperty("OAUTH_AUDIENCE")
-        if (oauthAudience == null) {
-            oauthAudience = "https://api.sypht.com"
-        }
+        oauthAudience = credentialProvider.oauthAudience
     }
 
     /**

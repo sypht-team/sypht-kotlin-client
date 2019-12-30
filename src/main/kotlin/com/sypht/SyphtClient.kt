@@ -1,6 +1,8 @@
 package com.sypht
 
+import com.sypht.auth.EnvironmentVariableCredentialProvider
 import com.sypht.helper.Constants
+import com.sypht.auth.ICredentialProvider
 import com.sypht.helper.InputStreamRequestBody
 import com.sypht.helper.PropertyHelper
 import io.jsonwebtoken.Claims
@@ -18,7 +20,7 @@ import java.util.logging.Logger
 /**
  * Connect to the Sypht API at https://api.sypht.com
  */
-open class SyphtClient() {
+open class SyphtClient(credentialProvider: ICredentialProvider = EnvironmentVariableCredentialProvider()) {
     private var bearerToken: String? = null
     private var okHttpClient: OkHttpClient? = null
     private var oauthClient: OAuthClient
@@ -31,7 +33,7 @@ open class SyphtClient() {
      */
     init {
         configureRequestTimeout()
-        oauthClient = OAuthClient(requestTimeout)
+        oauthClient = OAuthClient(requestTimeout, credentialProvider)
     }
 
     /**
