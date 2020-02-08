@@ -11,6 +11,7 @@
     <version>1.1</version>
     <properties>
         <kotlin.version>1.3.50</kotlin.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <pluginRepositories>
@@ -28,7 +29,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.8</version>
+                <version>3.0.0-M1</version>
                 <configuration>
                     <testSourceDirectory>src/test/kotlin/com/sypht</testSourceDirectory>
                     <environmentVariables>
@@ -65,7 +66,9 @@
                 </executions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
                 <executions>
                     <execution>
                         <id>default-compile</id>
@@ -94,6 +97,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
