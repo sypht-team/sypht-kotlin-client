@@ -17,7 +17,7 @@ class SyphtClientTest {
     @Test
     @Throws(IOException::class, IllegalStateException::class)
     fun uploadWithPNGFile() {
-        val fileId = SyphtClient().upload(getTestFile())
+        val fileId = SyphtClient().upload(getTestFile(), arrayOf("sypht.invoice"))
         assertNotNull("fileId was null", fileId)
     }
 
@@ -28,7 +28,7 @@ class SyphtClientTest {
     @Throws(IOException::class, IllegalStateException::class)
     fun uploadWithPNGInputStream() {
         val file = getTestFile()
-        val fileId = SyphtClient().upload(file.name, FileInputStream(file))
+        val fileId = SyphtClient().upload(file.name, FileInputStream(file), arrayOf("sypht.invoice"))
         assertNotNull("fileId was null", fileId)
     }
 
@@ -39,25 +39,11 @@ class SyphtClientTest {
     @Throws(IOException::class, IllegalStateException::class)
     fun getResults() {
         val syphtClient = SyphtClient()
-        val results = syphtClient.result(syphtClient.upload(getTestFile()))
+        val results = syphtClient.result(syphtClient.upload(getTestFile(), arrayOf("sypht.invoice")))
         assertNotNull("result was null", results)
         println(results)
         assert(results.contains("total"))
     }
-
-    /**
-     * Test upload and final prediction with fieldset options
-     */
-    @Test
-    @Throws(IOException::class, IllegalStateException::class)
-    fun getResultsWithCustomFieldSets() {
-        val syphtClient = SyphtClient()
-        val results = syphtClient.result(syphtClient.upload(getTestFile(), arrayOf("sypht.invoice")))
-        assertNotNull("result was null", results)
-        println(results)
-        assert(results.contains("invoice.total"))
-    }
-
 
     /**
      * Test upload and final prediction using Proxy Server
@@ -68,7 +54,7 @@ class SyphtClientTest {
         System.setProperty("socksHost", "50.62.59.61")
         System.setProperty("socksPort", "1431")
         val syphtClient = SyphtClient()
-        val results = syphtClient.result(syphtClient.upload(getTestFile()))
+        val results = syphtClient.result(syphtClient.upload(getTestFile(), arrayOf("sypht.invoice")))
         assertNotNull("result was null", results)
         println(results)
         assert(results.contains("total"))
