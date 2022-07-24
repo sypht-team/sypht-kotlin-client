@@ -57,11 +57,9 @@ open class SyphtClient(credentialProvider: ICredentialProvider = EnvironmentVari
      * @throws IllegalStateException when http response code is outside 200...299 or the response body is null.
      */
     @Throws(IOException::class, IllegalStateException::class)
-    fun upload(file: File, fieldSetOptions: Array<String>? = null): String {
+    fun upload(file: File, fieldSetOptions: Array<String>): String {
         val builder = buildMultipartBodyUploadWithFile(file)
-        fieldSetOptions?.let {
-            builder.addFormDataPart("fieldSets", JSONArray(fieldSetOptions).toString())
-        }
+        builder.addFormDataPart("fieldSets", JSONArray(fieldSetOptions).toString())
         return performUpload(builder)
     }
 
@@ -78,28 +76,31 @@ open class SyphtClient(credentialProvider: ICredentialProvider = EnvironmentVari
      * @throws IllegalStateException when http response code is outside 200...299 or the response body is null.
      */
     @Throws(IOException::class, IllegalStateException::class)
-    fun upload(fileName: String, inputStream: InputStream, fieldSetOptions: Array<String>? = null): String {
+    fun upload(fileName: String, inputStream: InputStream, fieldSetOptions: Array<String>): String {
         val builder = buildMultipartBodyUploadWithInputStream(fileName, inputStream)
-        fieldSetOptions?.let {
-            builder.addFormDataPart("fieldSets", JSONArray(fieldSetOptions).toString())
-        }
+        builder.addFormDataPart("fieldSets", JSONArray(fieldSetOptions).toString())
         return performUpload(builder)
     }
 
     private fun buildMultipartBodyUploadWithFile(file: File): MultipartBody.Builder {
-        val formBody = MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("fileToUpload", file.name,
-                        RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"), file))
-        return formBody
+        return MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart(
+                "fileToUpload", file.name,
+                RequestBody.create(MediaType.parse("application/x-www-form-urlencoded"), file)
+            )
     }
 
-    private fun buildMultipartBodyUploadWithInputStream(fileName: String, inputStream: InputStream): MultipartBody.Builder {
-        val formBody = MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("fileToUpload", fileName,
-                        InputStreamRequestBody(MediaType.parse("application/x-www-form-urlencoded"), inputStream))
-        return formBody
+    private fun buildMultipartBodyUploadWithInputStream(
+        fileName: String,
+        inputStream: InputStream
+    ): MultipartBody.Builder {
+        return MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart(
+                "fileToUpload", fileName,
+                InputStreamRequestBody(MediaType.parse("application/x-www-form-urlencoded"), inputStream)
+            )
     }
 
     @Throws(IOException::class, IllegalStateException::class)
@@ -107,10 +108,10 @@ open class SyphtClient(credentialProvider: ICredentialProvider = EnvironmentVari
         val client = getOkHttpClient()
         val formBody = builder.build()
         val request = createAuthorizedHttpRequest("${Constants.SYPHT_API_ENDPOINT}/fileupload")
-                .post(formBody)
-                .build();
+            .post(formBody)
+            .build()
 
-        val response = client.newCall(request).execute();
+        val response = client.newCall(request).execute()
         if (!response.isSuccessful || response.body() == null) {
             throw IllegalStateException("sypht upload failed")
         }
@@ -132,9 +133,9 @@ open class SyphtClient(credentialProvider: ICredentialProvider = EnvironmentVari
     fun result(fileId: String): String {
         val client = getOkHttpClient()
         val request = createAuthorizedHttpRequest("${Constants.SYPHT_API_ENDPOINT}/result/final/$fileId")
-                .get()
-                .build()
-        val response = client.newCall(request).execute();
+            .get()
+            .build()
+        val response = client.newCall(request).execute()
         if (!response.isSuccessful || response.body() == null) {
             throw IllegalStateException("sypht upload failed")
         }
@@ -144,11 +145,12 @@ open class SyphtClient(credentialProvider: ICredentialProvider = EnvironmentVari
 
     private fun createAuthorizedHttpRequest(url: String): Request.Builder {
         return Request.Builder().url(url)
-                .addHeader("Accepts", "application/json")
-                .addHeader("Authorization", "Bearer " + getBearerToken())
+            .addHeader("Accepts", "application/json")
+            .addHeader("Authorization", "Bearer " + getBearerToken())
     }
 
-    private @Synchronized fun getBearerToken(): String {
+    @Synchronized
+    private fun getBearerToken(): String {
         bearerToken?.let {
             val cacheExpiry = cacheExpiry(decodeTokenClaims(it))
             if (cacheExpiry > Date().time) {
@@ -157,7 +159,7 @@ open class SyphtClient(credentialProvider: ICredentialProvider = EnvironmentVari
         }
         try {
             bearerToken = oauthClient.login()
-        } catch(e: RuntimeException) {
+        } catch (e: RuntimeException) {
             e.printStackTrace()
             throw RuntimeException(e)
         }
@@ -168,12 +170,11 @@ open class SyphtClient(credentialProvider: ICredentialProvider = EnvironmentVari
         okHttpClient?.let {
             return it
         }
-        val client = OkHttpClient().newBuilder()
-                .connectTimeout(requestTimeout, TimeUnit.SECONDS)
-                .readTimeout(requestTimeout, TimeUnit.SECONDS)
-                .writeTimeout(requestTimeout, TimeUnit.SECONDS)
-                .build()
-        return client
+        return OkHttpClient().newBuilder()
+            .connectTimeout(requestTimeout, TimeUnit.SECONDS)
+            .readTimeout(requestTimeout, TimeUnit.SECONDS)
+            .writeTimeout(requestTimeout, TimeUnit.SECONDS)
+            .build()
     }
 
     private fun cacheExpiry(claims: Claims): Long {
@@ -184,8 +185,7 @@ open class SyphtClient(credentialProvider: ICredentialProvider = EnvironmentVari
         val splitToken = token.split("\\.".toRegex())
         val unsignedToken = splitToken[0] + "." + splitToken[1] + "."
         val jwt = Jwts.parser().parse(unsignedToken)
-        val claims = jwt.body as Claims
-        return claims
+        return jwt.body as Claims
     }
 
     private fun configureRequestTimeout() {
