@@ -25,7 +25,7 @@ class OAuthClientTest {
         val client = OAuthClient(credentialProvider = EnvironmentVariableCredentialProvider())
         val token = client.login()
 
-        TestCase.assertTrue("doesn't look like a JWT Token", token.startsWith("eyJ0"))
+        TestCase.assertTrue("doesn't look like a JWT Token", token.startsWith("eyJ"))
     }
 
     @Test

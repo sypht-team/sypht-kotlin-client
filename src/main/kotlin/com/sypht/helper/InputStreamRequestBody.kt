@@ -28,12 +28,12 @@ class InputStreamRequestBody(val contentType: MediaType?, private val inputStrea
 
     @Throws(IOException::class)
     override fun writeTo(sink: BufferedSink) {
-        var source: Source? = null
-        try {
-            source = Okio.source(inputStream)
-            sink.writeAll(source)
-        } finally {
-            Util.closeQuietly(source)
+        Okio.source(inputStream).let {
+            try {
+                sink.writeAll(it)
+            } finally {
+                Util.closeQuietly(it)
+            }
         }
     }
 }
